@@ -1,0 +1,20 @@
+
+# Go
+# ambientes locais
+# binaries and build artifacts
+*.db
+*.db.lock
+*.exe
+.c2.pid
+.deadbyte-lab/
+.env
+.pubkey.txt
+/dist/
+/vendor/
+c2.log
+deadbyte.db
+delivery/out/
+master-key-export.json
+
+dist/
+*.exe

